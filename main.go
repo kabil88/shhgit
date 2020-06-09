@@ -3,12 +3,11 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"github.com/eth0izzle/shhgit/core"
+	"github.com/fatih/color"
 	"os"
 	"regexp"
 	"strings"
-
-	"github.com/eth0izzle/shhgit/core"
-	"github.com/fatih/color"
 )
 
 var session = core.GetSession()
@@ -167,7 +166,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 			}
 		}
 
-		os.Remove(dir)
+		os.RemoveAll(dir)
 
 	} else {
 		for _, file := range core.GetMatchingFiles(dir) {
