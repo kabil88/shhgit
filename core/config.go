@@ -15,6 +15,7 @@ type Config struct {
 	GitHubAccessTokens           []string          `yaml:"github_access_tokens"`
 	Webhook                      string            `yaml:"webhook,omitempty"`
 	WebhookPayload               string            `yaml:"webhook_payload,omitempty"`
+	Telegram                     TelegramConfig    `yaml:"telegram_config,omitempty"`
 	BlacklistedExtensions        []string          `yaml:"blacklisted_extensions"`
 	BlacklistedPaths             []string          `yaml:"blacklisted_paths"`
 	BlacklistedEntropyExtensions []string          `yaml:"blacklisted_entropy_extensions"`
@@ -27,6 +28,14 @@ type ConfigSignature struct {
 	Match    string `yaml:"match,omitempty"`
 	Regex    string `yaml:"regex,omitempty"`
 	Verifier string `yaml:"verifier,omitempty"`
+}
+
+type TelegramConfig struct {
+	Token         string `yaml:"token,omitempty"`
+	ChatID        string `yaml:"chat_id,omitempty"`
+	ProxyAddress  string `yaml:"proxy_address,omitempty"`
+	ProxyUsername string `yaml:"proxy_username,omitempty"`
+	ProxyPassword string `yaml:"proxy_password,omitempty"`
 }
 
 func ParseConfig(options *Options) (*Config, error) {

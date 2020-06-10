@@ -1,7 +1,10 @@
 package core
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"golang.org/x/net/proxy"
 	"net/http"
 	"os"
 	"regexp"
@@ -65,6 +68,41 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 		text := colorStrip(fmt.Sprintf(format, args...))
 		payload := fmt.Sprintf(session.Config.WebhookPayload, text)
 		http.Post(session.Config.Webhook, "application/json", strings.NewReader(payload))
+	}
+
+	if session.Config.Telegram.Token != "" && session.Config.Telegram.ChatID != "" && level > WARN {
+		var myClient *http.Client
+		if session.Config.Telegram.ProxyAddress != "" {
+			auth := proxy.Auth{
+				User:     session.Config.Telegram.ProxyUsername,
+				Password: session.Config.Telegram.ProxyPassword,
+			}
+
+			dialer, err := proxy.SOCKS5("tcp", session.Config.Telegram.ProxyAddress, &auth, proxy.Direct)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "can't connect to the proxy:", err)
+				session.Log.Error("%s", "can't connect to the proxy: "+err.Error())
+			}
+
+			tr := &http.Transport{Dial: dialer.Dial}
+			myClient = &http.Client{
+				Transport: tr,
+			}
+		} else {
+			myClient = &http.Client{}
+		}
+
+		caption := fmt.Sprintf(format+"\n", args...)
+		rcpt := session.Config.Telegram.ChatID
+
+		values := map[string]string{
+			"text":       caption,
+			"chat_id":    rcpt,
+			"parse_mode": "Markdown",
+		}
+		jsonValue, _ := json.Marshal(values)
+		requestURL := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", session.Config.Telegram.Token)
+		myClient.Post(requestURL, "application/json", bytes.NewBuffer(jsonValue))
 	}
 
 	if level == FATAL {
