@@ -91,12 +91,12 @@ func checkSignaturesForFile(file core.MatchFile, relativeFileName string, url st
 				if matches = signature.GetContentsMatches(file); matches != nil {
 					count := len(matches)
 					m := strings.Join(matches, ", ")
-					session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), relativeFileName, color.YellowString(m))
+					session.Log.Important("%d %s for %s in file %s: %s", count, core.Pluralize(count, "match", "matches"), color.GreenString(signature.Name()), url+relativeFileName, color.YellowString(m))
 					session.WriteToCsv([]string{url, signature.Name(), relativeFileName, m})
 				}
 			} else {
 				if *session.Options.PathChecks {
-					session.Log.Important("[%s] Matching file %s for %s", url, color.YellowString(relativeFileName), color.GreenString(signature.Name()))
+					session.Log.Important("Matching file %s for %s", url+relativeFileName, color.GreenString(signature.Name()))
 					session.WriteToCsv([]string{url, signature.Name(), relativeFileName, ""})
 				}
 
@@ -110,7 +110,7 @@ func checkSignaturesForFile(file core.MatchFile, relativeFileName string, url st
 							entropy := core.GetEntropy(scanner.Text())
 
 							if entropy >= *session.Options.EntropyThreshold {
-								session.Log.Important("[%s] Potential secret in %s = %s", url, color.YellowString(relativeFileName), color.GreenString(scanner.Text()))
+								session.Log.Important("Potential secret in %s = %s", url+relativeFileName, color.GreenString(scanner.Text()))
 								session.WriteToCsv([]string{url, signature.Name(), relativeFileName, scanner.Text()})
 							}
 						}
@@ -126,7 +126,6 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 	if *session.Options.SearchQuery != "" && *session.Options.KeepSignatures {
 		matchedQuery := false
 		for _, file := range core.GetMatchingFiles(dir) {
-
 			var (
 				matches          []string
 				relativeFileName string
@@ -137,6 +136,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 			} else {
 				relativeFileName = strings.Replace(file.Path, dir, "", -1)
 			}
+			relativeFileName = relativeFileName[41:]
 
 			var searchQueryMatches []string
 			searchQueryMatches = checkSearchQuery(file)
@@ -147,7 +147,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 			if matches != nil {
 				count := len(matches)
 				m := strings.Join(matches, ", ")
-				session.Log.Warn("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
+				session.Log.Warn("%d %s for %s in file %s: %s", count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), url+relativeFileName, color.YellowString(m))
 				session.WriteToCsv([]string{url, "Search Query", relativeFileName, m})
 			}
 		}
@@ -181,6 +181,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 			} else {
 				relativeFileName = strings.Replace(file.Path, dir, "", -1)
 			}
+			relativeFileName = relativeFileName[41:]
 
 			if *session.Options.SearchQuery != "" {
 				var searchQueryMatches []string
@@ -191,7 +192,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 				if matches != nil {
 					count := len(matches)
 					m := strings.Join(matches, ", ")
-					session.Log.Important("[%s] %d %s for %s in file %s: %s", url, count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), relativeFileName, color.YellowString(m))
+					session.Log.Important("%d %s for %s in file %s: %s", count, core.Pluralize(count, "match", "matches"), color.GreenString("Search Query"), url+relativeFileName, color.YellowString(m))
 					session.WriteToCsv([]string{url, "Search Query", relativeFileName, m})
 				}
 			} else {

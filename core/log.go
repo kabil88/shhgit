@@ -92,7 +92,7 @@ func (l *Logger) Log(level int, format string, args ...interface{}) {
 			myClient = &http.Client{}
 		}
 
-		caption := fmt.Sprintf(format+"\n", args...)
+		caption := colorStrip(fmt.Sprintf(format+"\n", args...))
 		rcpt := session.Config.Telegram.ChatID
 
 		values := map[string]string{
