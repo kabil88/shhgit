@@ -83,6 +83,7 @@ func checkSearchQuery(file core.MatchFile) (matches []string) {
 
 func checkSignaturesForFile(file core.MatchFile, relativeFileName string, url string) (matchedAny bool) {
 	var matches []string
+
 	for _, signature := range session.Signatures {
 		if matched, part := signature.Match(file); matched {
 			matchedAny = true
@@ -123,6 +124,8 @@ func checkSignaturesForFile(file core.MatchFile, relativeFileName string, url st
 }
 
 func checkSignatures(dir string, url string) (matchedAny bool) {
+	url = url[:len(url)-4] + "/" + "blob/master"
+
 	if *session.Options.SearchQuery != "" && *session.Options.KeepSignatures {
 		matchedQuery := false
 		for _, file := range core.GetMatchingFiles(dir) {
@@ -161,6 +164,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 				} else {
 					relativeFileName = strings.Replace(file.Path, dir, "", -1)
 				}
+				relativeFileName = relativeFileName[41:]
 
 				matchedAny = checkSignaturesForFile(file, relativeFileName, url)
 			}
