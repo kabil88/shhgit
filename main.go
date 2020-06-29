@@ -203,7 +203,7 @@ func checkSignatures(dir string, url string) (matchedAny bool) {
 				matchedAny = checkSignaturesForFile(file, relativeFileName, url)
 			}
 
-			if !matchedAny {
+			if !matchedAny && !session.Options.LocalRun {
 				os.Remove(file.Path)
 			}
 		}

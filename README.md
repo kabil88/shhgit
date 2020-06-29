@@ -1,12 +1,12 @@
-# **shhgit**: find GitHub secrets in real time
+## shhgit finds secrets and sensitive files across GitHub (including Gists), GitLab and BitBucket committed in *near* real time.
 
-**Shhgit finds secrets and sensitive files across GitHub code and Gists committed in *near* real time by listening to the [GitHub Events API](https://developer.github.com/v3/activity/events/).**
+![Go](https://github.com/eth0izzle/shhgit/workflows/Go/badge.svg) ![](https://img.shields.io/docker/cloud/build/eth0izzle/shhgit.svg) ![](https://img.shields.io/docker/pulls/eth0izzle/shhgit.svg)
 
-<p align="center">
-<img src="https://www.darkport.co.uk/assets/img/shhgit.png" alt="shhgit" width="200" />
-</p>
+_Love shhgit? Help me reach my goal by sponsoring me via GitHub: https://github.com/sponsors/eth0izzle/_
 
-## **[NEW: LIVE VERSION. Find GitHub secrets straight from your browser!](https://shhgit.darkport.co.uk)**
+<img src="images/shhgit.png" height="30%" width="30%" />
+
+## **[NEW: LIVE VERSION. Find secrets find from your browser!](https://shhgit.darkport.co.uk)**
 
 Finding secrets in GitHub is nothing new. There are many great tools available to help with this depending on which side of the fence you sit. On the adversarial side, popular tools such as <a href="https://github.com/michenriksen/gitrob">gitrob</a> and <a href="https://github.com/dxa4481/truffleHog">truggleHog</a> focus on digging in to commit history to find secret tokens from specific repositories, users or organisations. On the defensive side, GitHub themselves are actively scanning for secrets through their [token scanning](https://help.github.com/en/articles/about-token-scanning) project. Their objective is to identify secret tokens within committed code in real-time and notify the service provider to action. So in theory if any AWS secret keys are committed to GitHub, Amazon will be notified and automatically revoke them.
 
@@ -14,45 +14,31 @@ I developed shhgit to raise awareness and bring to life the prevalence of this i
 
 **With some tweaking of the signatures shhgit would make an awesome addition to your bug bounty toolkit.**
 
-<img src="https://www.darkport.co.uk/assets/img/shhgit-example.png" alt="shhgit" />
-<img src="https://www.darkport.co.uk/assets/img/shhgit-live-example.png" alt="shhgit live!" />
-
-## Run from Docker
-
-1. Edit config.yaml and insert your github credentials
-2. `$ docker run -v $(pwd)/config.yaml:/config.yaml:ro fnxpt/shhgit`
+![shhgit](images/shhgit-example.png)
+![shhgit live!](images/shhgit-live-example.png)
 
 ## Installation
 
-You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) **or** build from source:
+You can use the [precompiled binaries](https://www.github.com/eth0izzle/shhgit/releases) or allow Go to build from source:
 
 1. Install [Go](https://golang.org/doc/install) for your platform.
-2. `$ go get github.com/eth0izzle/shhgit` will download and build shhgit.
+2. `go get github.com/eth0izzle/shhgit` will download and build shhgit automtically. Optionally you can clone this repository manually and run `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit`.
 3. See usage.
+
+Or you can run from Docker:
+
+1. Grab a copy of the config.yaml and insert your github credentials (see Usage).
+2. `docker run -v config.yaml:/config.yaml:ro eth0izzle/shhgit`
 
 ## Usage
 
-shhgit needs to access the public GitHub API so you will need to obtain and provide an access token. The API has a hard rate limit of 5,000 requests per hour per account, regardless what token is used. The more account-unique tokens you provide, the faster you can process the events. Follow [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) to generate a token; it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`. **Note that it is against the GitHub terms to bypass their rate limits. Use multiple tokens at your own risk**.
+shhgit can work in two ways: through the GitHub, GitLab and BitBucket public repoistorties or by processing files in a local directory.
 
-Unlike other tools, you don't need to pass any targets with shhgit. Simply run `$ shhgit` to start watching GitHub commits and find secrets or sensitive files matching the included 120 signatures.
+By default, shhgit will run in the former 'public mode' and needs to access the public GitHub API. You will need to obtain and provide an access token. The API has a hard rate limit of 5,000 requests per hour per account, regardless what token is used. The more account-unique tokens you provide, the faster you can process the events. Follow [this guide](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line) to generate a token; it doesn't require any scopes or permissions. And then place it under `github_access_tokens` in `config.yaml`. **Note that it is against the GitHub terms to bypass their rate limits. Use multiple tokens at your own risk**.
 
-Alternatively, you can forgo the signatures and use shhgit with a search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`
+Unlike other tools, you don't need to pass any targets with shhgit. Simply run `$ shhgit` to start watching GitHub commits and find secrets or sensitive files matching the included 120 signatures. You can also forgo the signatures and use shhgit with a search query, e.g. to find all AWS keys you could use `shhgit --search-query AWS_ACCESS_KEY_ID=AKIA`
 
-### Running locally
-
-There's also possibility to run shhgit locally, and include it also to CI pipeline's to scan e.g. private repos or repos in some other service than Github.
-
-Local running is enabled with flag `--local`. It value should be directory to scan (scan is made recursively).
-
-#### With Docker
-
-1. Build container: `docker image build -t shhgit .`
-2. Scan local directory with docker container (Linux/Mac): `docker container run --rm -it -v $(pwd):$(pwd) -w $(pwd) shhgit --local $(pwd)`
-
-#### Directly with compiled shhgit
-
-1. Build application: `GO111MODULE=on CGO_ENABLED=0 go build -v -i -o shhgit` (note that build goes to same directory as `config.yaml`, so there's no need to define path for configuration with `--config-path` flag)
-2. Scan local directory with compiled app: `./shhgit --local <absolute path to directory that should be scanned recursively>`
+To run in local mode (and perhaps integrate in to your CI pipelines) you can pass the `--local` flag (see Usage below).
 
 ### Options
 
@@ -131,10 +117,6 @@ Shell profile configuration file, Shell command alias configuration file, PHP co
 3. Commit your changes: `git commit -am 'Add some feature'`
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request.
-
-## Credits
-
-Some code borrowed from [Gitrob](https://github.com/michenriksen/gitrob) by [Michael Henriksen](https://michenriksen.com/).
 
 ## Disclaimer
 
